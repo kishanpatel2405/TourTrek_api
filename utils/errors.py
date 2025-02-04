@@ -38,4 +38,6 @@ class NotFound(ApiException):
 
 class AlreadyExists(ApiException):
     def __init__(self, msg: str):
-        super().__init__(msg, error_code=ErrorMessageCodes.ALREADY_EXISTS, status_code=400)
+        super().__init__(
+            msg, error_code=ErrorMessageCodes.ALREADY_EXISTS, status_code=400
+        )

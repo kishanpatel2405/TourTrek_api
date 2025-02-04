@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.events import Event
 
+
 def add_event_handlers(app: FastAPI):
     @app.on_event("startup")
     async def startup_event():
