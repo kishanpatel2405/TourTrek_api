@@ -1,9 +1,14 @@
 import base64
 import hashlib
+import hmac
 import json
 from datetime import datetime, timedelta
+
+from fastapi import HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
-import hmac
+
+from utils.errors import TokenError
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -37,6 +42,7 @@ def encode_jwt(data: dict, expires_delta: timedelta = timedelta(hours=1)) -> str
 
     return f"{encoded_header}.{encoded_payload}.{signature}"
 
+
 def hmac_sha256(message: str, secret: str) -> str:
     """ Create HMAC-SHA256 signature """
     key = secret.encode("utf-8")
@@ -58,4 +64,21 @@ def decode_jwt(jwt_token: str) -> dict:
     return payload
 
 
+class JWTBearer(HTTPBearer):
+    def __init__(self, auto_error: bool = True):
+        super(JWTBearer, self).__init__(auto_error=auto_error)
 
+    async def __call__(self, request: Request):
+        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
+        if credentials:
+            if not credentials.scheme == "Bearer":
+                raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
+            try:
+                return self.verify_jwt(credentials.credentials)
+            except TokenError as e:
+                raise HTTPException(status_code=403, detail=str(e))
+        else:
+            raise HTTPException(status_code=403, detail="Invalid authorization code.")
+
+    def verify_jwt(self, jwt_token: str):
+        ...
