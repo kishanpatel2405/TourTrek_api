@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 from datetime import datetime, timedelta
 
 from fastapi import HTTPException, Request
@@ -12,7 +13,7 @@ from utils.errors import TokenError
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = "qwertyuiop"
+SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
 
 
 def hash_password(password: str) -> str:
